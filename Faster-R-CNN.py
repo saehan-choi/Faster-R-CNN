@@ -202,6 +202,9 @@ anchor_boxes = np.zeros(((feature_size * feature_size * 9), 4))
 
 index = 0
 
+# ctr -> (2500,2) 
+# (8,8), (8,24), (8,40) ....784 , 784
+
 for c in ctr:                        # per anchors
     ctr_y, ctr_x = c
     for i in range(len(ratios)):     # per ratios
@@ -210,6 +213,8 @@ for c in ctr:                        # per anchors
             # anchor box height, width
             h = sub_sample * scales[j] * np.sqrt(ratios[i])
             w = sub_sample * scales[j] * np.sqrt(1./ ratios[i])
+            # np.sqrt 빼고 생각하면 편함
+            # h, w 자체가 bounding box를 생성하기위한 목적!
 
             # anchor box [x1, y1, x2, y2]
             anchor_boxes[index, 0] = ctr_x - w / 2.
