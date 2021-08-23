@@ -148,5 +148,76 @@ for i in range(start,end):
     fig.add_subplot(start, end, i)
     plt.imshow(imgArray[i], cmap='gray')
     
-    
 plt.show()
+
+# sub-sampling rate = 1/16
+# image size : 800x800
+# sub-sampled feature map size : 800 x 1/16 = 50
+# 50 x 50 = 2500 anchors and each anchor generate 9 anchor boxes
+# total anchor boxes = 50 x 50 x 9 = 22500
+# x,y intervals to generate anchor box center
+
+feature_size = 800 // 16
+ctr_x = np.arange(16, (feature_size + 1) * 16, 16)
+ctr_y = np.arange(16, (feature_size + 1) * 16, 16)
+print(len(ctr_x))
+print(ctr_x)
+
+# coordinates of the 255 center points to generate anchor boxes
+
+index = 0
+ctr = np.zeros((2500, 2))
+
+for i in range(len(ctr_x)):
+    for j in range(len(ctr_y)):
+        ctr[index, 1] = ctr_x[i] - 8
+        ctr[index, 0] = ctr_y[j] - 8
+        index += 1
+
+# ctr => [[center x, center y], ...]
+print(ctr.shape)
+print(ctr[:10, :])
+
+# display the 2500 anchors within image
+
+img_clone2 = np.copy(img)
+ctr_int = ctr.astype("int32")
+
+plt.figure(figsize=(7, 7))
+for i in range(ctr.shape[0]):
+    cv2.circle(img_clone2, (ctr_int[i][0], ctr_int[i][1]),
+              radius=1, color=(255, 0, 0), thickness=3)
+plt.imshow(img_clone2)
+plt.show()
+
+# for each of the 2500 anchors, generate 9 anchor boxes
+# 2500 x 9 = 22500 anchor boxes
+
+ratios = [0.5, 1, 2]
+scales = [8, 16, 32]
+sub_sample = 16
+
+anchor_boxes = np.zeros(((feature_size * feature_size * 9), 4))
+# anchor_boxes = (50*50*9,4)
+
+index = 0
+
+for c in ctr:                        # per anchors
+    ctr_y, ctr_x = c
+    for i in range(len(ratios)):     # per ratios
+        for j in range(len(scales)): # per scales
+            
+            # anchor box height, width
+            h = sub_sample * scales[j] * np.sqrt(ratios[i])
+            w = sub_sample * scales[j] * np.sqrt(1./ ratios[i])
+
+            # anchor box [x1, y1, x2, y2]
+            anchor_boxes[index, 0] = ctr_x - w / 2.
+            anchor_boxes[index, 1] = ctr_y - h / 2.
+            anchor_boxes[index, 2] = ctr_x + w / 2.
+            anchor_boxes[index, 3] = ctr_y + h / 2.
+            
+            index += 1
+            
+print(anchor_boxes.shape)
+print(anchor_boxes[:10, :])
