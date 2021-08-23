@@ -226,3 +226,29 @@ for c in ctr:                        # per anchors
             
 print(anchor_boxes.shape)
 print(anchor_boxes[:10, :])
+
+# display the anchor boxes of one anchor and the ground truth boxes
+
+img_clone = np.copy(img)
+# 만약 new = arr 이렇게 복사할시
+# new[0] = 1 로 바꾼다면 arr 까지 바뀌기때문에 np.copy 를 해줘야한다 np.copy 시 본래의 배열에 지장을 주지않음.
+
+# draw random anchor boxes
+# 22500 / 2 = 11250
+for i in range(11250, 11259):
+    x1 = int(anchor_boxes[i][0])
+    y1 = int(anchor_boxes[i][1])
+    x2 = int(anchor_boxes[i][2])
+    y2 = int(anchor_boxes[i][3])
+    
+    cv2.rectangle(img_clone, (x1, y1), (x2, y2), color=(255, 0, 0),
+                 thickness=3)
+
+# draw ground truth boxes
+for i in range(len(bbox)):
+    cv2.rectangle(img_clone, (bbox[i][0], bbox[i][1]), 
+                             (bbox[i][2], bbox[i][3]),
+                 color=(0, 255, 0), thickness=3)
+
+plt.imshow(img_clone)
+plt.show()
