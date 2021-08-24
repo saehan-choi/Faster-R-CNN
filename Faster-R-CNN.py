@@ -252,3 +252,49 @@ for i in range(len(bbox)):
 
 plt.imshow(img_clone)
 plt.show()
+
+
+# draw all anchor boxes
+
+# add paddings(can't draw anchor boxes out of image boundary)
+img_clone3 = np.copy(img)
+img_clone4 = cv2.copyMakeBorder(img_clone3,400,400,400,400,cv2.BORDER_CONSTANT, value=(255, 255, 255))
+img_clone5 = np.copy(img_clone4)
+
+for i in range(len(anchor_boxes)):
+    x1 = int(anchor_boxes[i][0])
+    y1 = int(anchor_boxes[i][1])
+    x2 = int(anchor_boxes[i][2])
+    y2 = int(anchor_boxes[i][3])
+    
+    cv2.rectangle(img_clone5, (x1+400, y1+400), (x2+400, y2+400), color=(255, 0, 0),
+                 thickness=2)
+
+plt.figure(figsize=(10, 10))
+plt.subplot(121), plt.imshow(img_clone4)
+plt.subplot(122), plt.imshow(img_clone5)
+plt.show()
+
+
+# ignore the cross-boundary anchor boxes
+# valid anchor boxes with (x1, y1) > 0 and (x2, y2) <= 800
+
+index_inside = np.where(
+        (anchor_boxes[:, 0] >= 0) &
+        (anchor_boxes[:, 1] >= 0) &
+        (anchor_boxes[:, 2] <= 800) &
+        (anchor_boxes[:, 3] <= 800))[0]
+
+
+# [0]을 하는이유는 where로 나오면 numpy array 형태로 나오게되는데, 배열 인덱스값을 빼내기위해
+
+print(index_inside.shape)
+
+# only 8940 anchor boxes are inside the boundary out of 22500
+valid_anchor_boxes = anchor_boxes[index_inside]
+print(valid_anchor_boxes.shape)
+
+
+
+
+
