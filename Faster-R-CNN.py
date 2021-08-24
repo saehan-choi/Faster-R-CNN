@@ -296,5 +296,41 @@ print(valid_anchor_boxes.shape)
 
 
 
+# calculate Iou of the valid anchor boxes
+# since we have 8940 anchor boxes and 4 ground truth objects,
+# we should get an array with (8940, 4) as the output
+# [IoU with gt box1, IoU with gt box2, IoU with gt box3,IoU with gt box4]
+
+ious = np.empty((len(valid_anchor_boxes),4), dtype=np.float32)
+# valid_anchor_boxes -> inside image anchor box
+# empty -> 빠르나 배열의 값들이 0으로 채워지지 않기때문에 직접 값들을 넣어줘야함.
+ious.fill(0)
+
+# anchor boxes
+for i, anchor_box in enumerate(valid_anchor_boxes):
+    xa1, ya1, xa2, ya2 = anchor_box
+    anchor_area = (xa2 - xa1) * (ya2 - ya1)
+    # size of box -> anchor_area
+    
+    # ground truth boxes
+    for j, gt_box in enumerate(bbox):
+        xb1, yb1, xb2, yb2 = gt_box
+        box_area = (xb2 - xb1) * (yb2 - yb1)
+        
+        inter_x1 = max([xb1, xa1])
+        inter_y1 = max([yb1, ya1])
+        inter_x2 = min([xb2, xa2])
+        inter_y2 = min([yb2, ya2])
+        
+        if (inter_x1 < inter_x2) and (inter_y1 < inter_y2):
+            inter_area = (inter_x2 - inter_x1) * (inter_y2 - inter_y1)
+            iou = inter_area / (anchor_area + box_area - inter_area)
+        else:
+            iou = 0
+        
+        ious[i, j] = iou
+        
+print(ious.shape)
+print(ious[8930:8940, :])
 
 
