@@ -1,4 +1,11 @@
-t = [1, 5, 7, 33, 39, 52]
+import numpy as np
+t = np.array([1, 5, 7, 33, 39, 52])
 
-for i in enumerate(t):
-    print(i)
+# test enumerate
+# for i in enumerate(t):
+#     print(i)
+
+# test argmax
+# print(t)
+# print(t.argmax(axis=0))
+

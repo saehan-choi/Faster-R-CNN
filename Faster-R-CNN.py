@@ -294,14 +294,13 @@ print(index_inside.shape)
 valid_anchor_boxes = anchor_boxes[index_inside]
 print(valid_anchor_boxes.shape)
 
-
-
 # calculate Iou of the valid anchor boxes
 # since we have 8940 anchor boxes and 4 ground truth objects,
 # we should get an array with (8940, 4) as the output
 # [IoU with gt box1, IoU with gt box2, IoU with gt box3,IoU with gt box4]
 
 ious = np.empty((len(valid_anchor_boxes),4), dtype=np.float32)
+# iou는 소수점 값이기 때문에 float32 로 타입변경
 # valid_anchor_boxes -> inside image anchor box
 # empty -> 빠르나 배열의 값들이 0으로 채워지지 않기때문에 직접 값들을 넣어줘야함.
 ious.fill(0)
@@ -313,6 +312,7 @@ for i, anchor_box in enumerate(valid_anchor_boxes):
     # size of box -> anchor_area
     
     # ground truth boxes
+    # bbox -> ground truth (4,4)
     for j, gt_box in enumerate(bbox):
         xb1, yb1, xb2, yb2 = gt_box
         box_area = (xb2 - xb1) * (yb2 - yb1)
@@ -327,10 +327,11 @@ for i, anchor_box in enumerate(valid_anchor_boxes):
             iou = inter_area / (anchor_area + box_area - inter_area)
         else:
             iou = 0
-        
+
+        # i -> 0~8939 j -> 0~3
         ious[i, j] = iou
-        
+
 print(ious.shape)
-print(ious[8930:8940, :])
 
-
+# 좌표가 왜 0, 1, 2, 3 에 분포하는지 모르겠다....... 일단넘어가자 
+# print(ious[8000:8100, :])
