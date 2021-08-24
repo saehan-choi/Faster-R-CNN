@@ -335,3 +335,71 @@ print(ious.shape)
 
 # 좌표가 왜 0, 1, 2, 3 에 분포하는지 모르겠다....... 일단넘어가자 
 # print(ious[8000:8100, :])
+
+
+# what anchor box has max ou with the ground truth box
+
+gt_argmax_ious = ious.argmax(axis=0)
+print(gt_argmax_ious)
+# argmax -> 배열 최대값의 인덱스값
+
+gt_max_ious = ious[gt_argmax_ious, np.arange(ious.shape[1])]
+print(gt_max_ious)
+
+gt_argmax_ious = np.where(ious == gt_max_ious)[0]
+print(gt_argmax_ious)
+# argmax IoUs가 무슨의미인지...
+#  이거 제대로 알기 뭘 뜻하는지 알아야함.
+
+
+# what ground truth bbox is associated with each anchor box
+
+argmax_ious = ious.argmax(axis=1)
+print(argmax_ious.shape)
+print(argmax_ious)
+
+max_ious = ious[np.arange(len(index_inside)), argmax_ious]
+print(max_ious)
+
+# set the labels of 8940 valid anchor boxes to -1(ignore)
+label = np.empty((len(index_inside),), dtype=np.int32)
+label.fill(-1)
+print(label.shape)
+
+
+# use IoU to assign 1 (objects) to two kind of anchors
+# a) the anchors with the highest IoU overlap with a ground truth box
+# b) an anchor that has an IoU overlap higher than 0.7 with ground truth box
+
+# Assign 0 (background) to an anchor if its IoU ratio is lower than 0.3
+
+pos_iou_threshold = 0.7
+neg_iou_threshold = 0.3
+
+label[gt_argmax_ious] = 1
+label[max_ious >= pos_iou_threshold] = 1
+label[max_ious < neg_iou_threshold] = 0
+
+# Every time mini-batch training take only 256 valid anchor boxes to train RPN
+# of which 128 positive examples, 128 negative-examples
+# disable leftover positive/negative anchors 
+n_sample = 256
+pos_ratio = 0.5
+n_pos = pos_ratio * n_sample
+
+pos_index = np.where(label == 1)[0]
+
+if len(pos_index) > n_pos:
+    disable_index = np.random.choice(pos_index,
+                                    size = (len(pos_index) - n_pos),
+                                    replace=False)
+    label[disable_index] = -1
+    
+n_neg = n_sample * np.sum(label == 1)
+neg_index = np.where(label == 0)[0]
+
+if len(neg_index) > n_neg:
+    disable_index = np.random.choice(neg_index, 
+                                    size = (len(neg_index) - n_neg), 
+                                    replace = False)
+    label[disable_index] = -1
