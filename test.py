@@ -12,4 +12,6 @@ t = np.array(arr)
 # print(t)
 # print(t.argmax(axis=0))
 
-print(np.where(t==39))
+# print(np.where(t==39))
+
+[np.arange(len(arr)), argmax_ious]

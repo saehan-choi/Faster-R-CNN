@@ -357,7 +357,7 @@ print(gt_max_ious)
 gt_argmax_ious = np.where(ious == gt_max_ious)[0]
 print(gt_argmax_ious)
 # gt_argmax_ious 이 값들이 상당히 많이나오는데, 위의 argmax 값과 똑같은값들이 많기 때문이다.
-# np.where 에서 [0]을 하는이유는 index값을 찾기위해 행방향(x방향)으로 값을 찾아야하기 때문이다. ([1]은 열방향) 
+# np.where 에서 [0]을 하는이유는 index값을 찾기위해 열방향(y방향)으로 값을 찾아야하기 때문이다. ([1]은 열방향) 
 
 
 
@@ -391,7 +391,9 @@ print(argmax_ious.shape)
 print(argmax_ious)
 
 max_ious = ious[np.arange(len(index_inside)), argmax_ious]
+# 이건 arrange로 0~8940 까지 배열을 나열하고, argmax_ious 는 ious의 최댓값을 가지는 인덱스를 가지므로 (8940,0)의 행렬을 가짐
 print(max_ious)
+
 
 # set the labels of 8940 valid anchor boxes to -1(ignore)
 label = np.empty((len(index_inside),), dtype=np.int32)
@@ -412,14 +414,19 @@ label[gt_argmax_ious] = 1
 label[max_ious >= pos_iou_threshold] = 1
 label[max_ious < neg_iou_threshold] = 0
 
+# print(label[8100:8200])
+
 # Every time mini-batch training take only 256 valid anchor boxes to train RPN
 # of which 128 positive examples, 128 negative-examples
-# disable leftover positive/negative anchors 
+# disable leftover positive/negative anchors
+
 n_sample = 256
 pos_ratio = 0.5
 n_pos = pos_ratio * n_sample
 
 pos_index = np.where(label == 1)[0]
+# 위에서 label[gt_argmax_ious] = 1 을 했기때문에 iou_threshold가 0.7이 안넘어도 포함됨
+# print(pos_index)
 
 if len(pos_index) > n_pos:
     disable_index = np.random.choice(pos_index,
