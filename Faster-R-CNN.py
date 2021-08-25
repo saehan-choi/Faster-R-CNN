@@ -316,7 +316,7 @@ for i, anchor_box in enumerate(valid_anchor_boxes):
     for j, gt_box in enumerate(bbox):
         xb1, yb1, xb2, yb2 = gt_box
         box_area = (xb2 - xb1) * (yb2 - yb1)
-        
+
         inter_x1 = max([xb1, xa1])
         inter_y1 = max([yb1, ya1])
         inter_x2 = min([xb2, xa2])
@@ -328,29 +328,61 @@ for i, anchor_box in enumerate(valid_anchor_boxes):
         else:
             iou = 0
 
+        # i -> anchor box index j -> ground truth index
+
         # i -> 0~8939 j -> 0~3
         ious[i, j] = iou
 
 print(ious.shape)
 
-# 좌표가 왜 0, 1, 2, 3 에 분포하는지 모르겠다....... 일단넘어가자 
-# print(ious[8000:8100, :])
+# 좌표가 왜 0, 1, 2, 3 에 분포하는가?
+# 해답
+# i : anchor box index 
+# j : ground truth index
+# 따라서 8940 anchor box index height를 가진 4개의 ground truth 
+# 행렬의 모든곳에 분포가능함.
 
+print(ious[6000:6100, :])
 
 # what anchor box has max ou with the ground truth box
 
 gt_argmax_ious = ious.argmax(axis=0)
 print(gt_argmax_ious)
 # argmax -> 배열 최대값의 인덱스값
+# ground truth 의 점수기준으로 argmax 를 시행. (axis = 0)
 
 gt_max_ious = ious[gt_argmax_ious, np.arange(ious.shape[1])]
 print(gt_max_ious)
 
 gt_argmax_ious = np.where(ious == gt_max_ious)[0]
 print(gt_argmax_ious)
-# argmax IoUs가 무슨의미인지...
-#  이거 제대로 알기 뭘 뜻하는지 알아야함.
+# gt_argmax_ious 이 값들이 상당히 많이나오는데, 위의 argmax 값과 똑같은값들이 많기 때문이다.
+# np.where 에서 [0]을 하는이유는 index값을 찾기위해 행방향(x방향)으로 값을 찾아야하기 때문이다. ([1]은 열방향) 
 
+
+
+# After leaving only max IoUs
+# img_clone = np.copy(img)
+
+# # draw random anchor boxes
+# # 22500 / 2 = 11250
+# for i in gt_argmax_ious:
+#     x1 = int(valid_anchor_boxes[i][0])
+#     y1 = int(valid_anchor_boxes[i][1])
+#     x2 = int(valid_anchor_boxes[i][2])
+#     y2 = int(valid_anchor_boxes[i][3])
+    
+#     cv2.rectangle(img_clone, (x1, y1), (x2, y2), color=(255, 0, 0),
+#                  thickness=3)
+
+# # draw ground truth boxes
+# for i in range(len(bbox)):
+#     cv2.rectangle(img_clone, (bbox[i][0], bbox[i][1]), 
+#                              (bbox[i][2], bbox[i][3]),
+#                  color=(0, 255, 0), thickness=3)
+
+# plt.imshow(img_clone)
+# plt.show()
 
 # what ground truth bbox is associated with each anchor box
 
