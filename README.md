@@ -10,5 +10,5 @@ object detection of zebras
 # After leaving only the anchor box inside the image
 ![image](https://user-images.githubusercontent.com/70372577/130572626-605c3492-a692-49cd-bfeb-ebd7f9eb6a38.png)
 
-# after IoU process
-![image](https://user-images.githubusercontent.com/70372577/130742719-c4cc75db-30ae-4d8d-8bbb-08cc063700ef.png)
+# After leaving only max IoU
+![image](https://user-images.githubusercontent.com/70372577/130742912-1c565277-6876-4004-a1cb-a8036123f128.png)
