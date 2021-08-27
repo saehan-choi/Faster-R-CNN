@@ -442,3 +442,78 @@ if len(neg_index) > n_neg:
                                     size = (len(neg_index) - n_neg), 
                                     replace = False)
     label[disable_index] = -1
+
+    # convert the format of valid anchor boxes [x1, y1, x2, y2] For each valid anchor box, find the groundtruth object which has max_iou
+
+# bbox -> ground truth boxes
+max_iou_bbox = bbox[argmax_ious]
+# argmax_ious -> 0 0 0 3 0 2 0 1 등 ious 에서 제일 높은 ground truth index 
+print(max_iou_bbox.shape)
+
+# valid_anchor_boxes -> (x1,y1,x2,y2)
+height = valid_anchor_boxes[:, 3] - valid_anchor_boxes[:, 1]
+width = valid_anchor_boxes[:, 2] - valid_anchor_boxes[:, 0]
+
+ctr_y = valid_anchor_boxes[:, 1] + 0.5 * height
+ctr_x = valid_anchor_boxes[:, 0] + 0.5 * width
+
+# ctr_x = 1/2*width 
+# ctr_y -> 1/2*height 반쪼가리 height width
+
+# [x1,y1,x2,y2]
+base_height = max_iou_bbox[:, 3] - max_iou_bbox[:, 1]
+base_width = max_iou_bbox[:, 2] - max_iou_bbox[:, 0]
+
+base_ctr_y = max_iou_bbox[:, 1] + 0.5 * base_height
+base_ctr_x = max_iou_bbox[:, 0] + 0.5 * base_width
+# 반쪽 
+
+eps = np.finfo(height.dtype).eps
+# eps -> 매우작은수
+
+height = np.maximum(height, eps)
+width = np.maximum(width, eps)
+# 쓰레기값 제거.
+############################################################
+############################################################
+############################################################
+# 이부분 아직 뭔말인지 헷갈림....!
+dy = (base_ctr_y - ctr_y) / height
+dx = (base_ctr_x - ctr_x) / width
+dh = np.log(base_height / height)
+dw = np.log(base_width / width)
+
+anchor_locs = np.vstack((dx, dy, dw, dh)).transpose()
+print(anchor_locs.shape)
+# 이부분 아직 뭔말인지 헷갈림....!
+############################################################
+############################################################
+############################################################
+
+# First set the label=-1 and locations=0 of the 22500 anchor boxes, 
+# and then fill in the locations and labels of the 8940 valid anchor boxes
+# NOTICE: For each training epoch, we randomly select 128 positive + 128 negative 
+# from 8940 valid anchor boxes, and the others are marked with -1
+
+anchor_labels = np.empty((len(anchor_boxes)), dtype=label.dtype)
+anchor_labels.fill(-1)
+
+# label[gt_argmax_ious] = 1
+# label[max_ious >= pos_iou_threshold] = 1
+# label[max_ious < neg_iou_threshold] = 0
+anchor_labels[index_inside] = label
+# index_inside -> 이미지 내부에있는 anchor box index
+# max_IoU 앵커박스는 1로 라벨링되어있음    
+# if anchor label == 0  negative label, 
+# anchor label == 1 positive label, 
+# anchor label == -1  nothing
+# print(anchor_labels[8700:8720])
+print(anchor_labels.shape)
+
+anchor_locations = np.empty((len(anchor_boxes),) + anchor_boxes.shape[1:], dtype=anchor_locs.dtype)
+anchor_locations.fill(0)
+anchor_locations[index_inside, :] = anchor_locs
+print(anchor_locations.shape)
+print(anchor_locations[:10, :])
+
+
