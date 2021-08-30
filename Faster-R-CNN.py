@@ -516,4 +516,3 @@ anchor_locations[index_inside, :] = anchor_locs
 print(anchor_locations.shape)
 print(anchor_locations[:10, :])
 
-
