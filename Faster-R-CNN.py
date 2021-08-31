@@ -516,3 +516,55 @@ anchor_locations[index_inside, :] = anchor_locs
 print(anchor_locations.shape)
 print(anchor_locations[:10, :])
 
+
+# Send the features of the input image to the Region Proposal Network (RPN), 
+# predict 22500 region proposals (ROIs)
+
+in_channels = 512
+mid_channels = 512
+n_anchor = 9
+
+conv1 = nn.Conv2d(in_channels, mid_channels, 3, 1, 1).to(DEVICE)
+conv1.weight.data.normal_(0, 0.01)
+conv1.bias.data.zero_()
+
+# bounding box regressor
+reg_layer = nn.Conv2d(mid_channels, n_anchor * 4, 1, 1, 0).to(DEVICE)
+reg_layer.weight.data.normal_(0, 0.01)
+reg_layer.bias.data.zero_()
+
+# classifier(object or not)
+cls_layer = nn.Conv2d(mid_channels, n_anchor * 2, 1, 1, 0).to(DEVICE)
+cls_layer.weight.data.normal_(0, 0.01)
+cls_layer.bias.data.zero_()
+
+
+x = conv1(output_map.to(DEVICE)) # output_map = faster_rcnn_feature_extractor(imgTensor)
+pred_anchor_locs = reg_layer(x) # bounding box regresor output
+pred_cls_scores = cls_layer(x)  # classifier output 
+
+print(pred_anchor_locs.shape, pred_cls_scores.shape)
+
+
+# Convert RPN to predict the position and classification format of the anchor box
+# Position: [1, 36(9*4), 50, 50] => [1, 22500(50*50*9), 4] (dy, dx, dh, dw) 
+# Classification: [1, 18(9*2), 50, 50] => [1, 22500, 2] (1, 0)
+
+pred_anchor_locs = pred_anchor_locs.permute(0, 2, 3, 1).contiguous().view(1, -1, 4)
+print(pred_anchor_locs.shape)
+
+pred_cls_scores = pred_cls_scores.permute(0, 2, 3, 1).contiguous()
+print(pred_cls_scores.shape)
+
+objectness_score = pred_cls_scores.view(1, 50, 50, 9, 2)[:, :, :, :, 1].contiguous().view(1, -1)
+print(objectness_score.shape)
+
+pred_cls_scores = pred_cls_scores.view(1, -1, 2)
+print(pred_cls_scores.shape)
+
+# According to the 22500 ROIs predicted by RPN and 22500 anchor boxes, 
+# calculate the RPN loss¶
+print(pred_anchor_locs.shape)
+print(pred_cls_scores.shape)
+print(anchor_locations.shape)
+print(anchor_labels.shape)
